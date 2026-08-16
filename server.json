@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
   "name": "io.github.krystiangw/agenticpay",
   "description": "x402 USDC paywall bridge for MCP — pay per tool call on Solana.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "repository": {
     "url": "https://github.com/krystiangw/agenticpay",
     "source": "github"
@@ -12,7 +12,7 @@
     {
       "registryType": "npm",
       "identifier": "@agenticpay/mcp-bridge",
-      "version": "0.0.2",
+      "version": "0.1.0",
       "transport": {
         "type": "stdio"
       },
@@ -42,6 +42,18 @@
           "isRequired": false,
           "isSecret": false,
           "default": "https://api.devnet.solana.com"
+        },
+        {
+          "name": "AGENTICPAY_BRIDGE_MAX_PER_CALL",
+          "description": "Spend cap: refuse any single payment above this amount, in base units of the payment asset (USDC has 6 decimals, so \"5000\" = 0.005 USDC). Unset means no per-call limit.",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "AGENTICPAY_BRIDGE_SESSION_BUDGET",
+          "description": "Spend cap: refuse payments once this process's cumulative spend would exceed this amount, in base units of the payment asset. Counted when a payment is signed, so a settlement that later fails still consumes budget. Unset means no session limit.",
+          "isRequired": false,
+          "isSecret": false
         }
       ]
     }
