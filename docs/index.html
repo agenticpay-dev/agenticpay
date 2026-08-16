@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>agenticpay — get paid by AI agents (open-source x402 stack for MCP on Solana)</title>
+    <title>agenticpay - get paid by AI agents (open-source x402 stack for MCP on Solana)</title>
     <meta
       name="description"
       content="Open-source x402 micropayments stack for MCP servers. Declare a price on any tool, agents pay in USDC, settles on Solana in ~1.5 seconds. Self-hosted facilitator + TypeScript SDK + paywall middleware."
@@ -16,7 +16,7 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://krystiangw.github.io/agenticpay/" />
-    <meta property="og:title" content="agenticpay — get paid by AI agents" />
+    <meta property="og:title" content="agenticpay - get paid by AI agents" />
     <meta
       property="og:description"
       content="Open-source x402 micropayments stack for MCP servers. Declare a price on any tool, agents pay in USDC over x402, settles on Solana in ~1.5s. Includes self-hosted facilitator, TypeScript SDK, and live Claude Opus agent demo."
@@ -29,7 +29,7 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://krystiangw.github.io/agenticpay/" />
-    <meta name="twitter:title" content="agenticpay — get paid by AI agents" />
+    <meta name="twitter:title" content="agenticpay - get paid by AI agents" />
     <meta
       name="twitter:description"
       content="Open-source x402 micropayments stack for MCP servers on Solana. Self-hosted facilitator, TypeScript SDK, live Claude Opus agent demo."
@@ -50,7 +50,7 @@
             "applicationCategory": "DeveloperApplication",
             "applicationSubCategory": "PaymentInfrastructure",
             "operatingSystem": "Cross-platform",
-            "softwareVersion": "0.0.2",
+            "softwareVersion": "0.1.0",
             "license": "https://opensource.org/licenses/MIT",
             "programmingLanguage": "TypeScript",
             "author": {
@@ -240,25 +240,64 @@ Task: Reverse 'agenticpay rocks' and tell me how many words are in
         <h2 class="text-2xl font-bold">What's in the box</h2>
         <ul class="space-y-3 text-zinc-300">
           <li>
-            <span class="accent">packages/sdk</span> — USDC + wallet primitives
+            <span class="accent">packages/sdk</span> - USDC + wallet primitives
           </li>
           <li>
-            <span class="accent">packages/cli</span> — `agenticpay` command
+            <span class="accent">packages/cli</span> - `agenticpay` command
           </li>
           <li>
-            <span class="accent">packages/mcp-server</span> — HTTP server with
+            <span class="accent">packages/mcp-server</span> - HTTP server with
             x402 paywall middleware. Each tool has a price.
           </li>
           <li>
-            <span class="accent">packages/facilitator</span> — first
+            <span class="accent">packages/mcp-bridge</span> - the other side:
+            turns x402-paywalled endpoints into native MCP tools. Drop it into
+            Claude Desktop or Cursor and paid APIs show up as ordinary tools.
+            Holds the wallet, signs each payment, enforces the spend caps below.
+          </li>
+          <li>
+            <span class="accent">packages/facilitator</span> - first
             open-source x402 facilitator. Verify + settle on Solana, pays SOL
             fees on behalf of the agent.
           </li>
           <li>
-            <span class="accent">examples/two-agent-demo</span> — Claude Opus
+            <span class="accent">examples/two-agent-demo</span> - Claude Opus
             agent paying for tool calls
           </li>
         </ul>
+      </section>
+
+      <!-- SPEND CAPS -->
+      <section class="space-y-4">
+        <h2 class="text-2xl font-bold">The agent pays. You set the ceiling.</h2>
+        <p class="text-zinc-400 leading-relaxed">
+          An agent holding a wallet and signing its own payments is the whole
+          point, and also the obvious thing to be nervous about. So the bridge
+          takes two limits, and refuses anything above them before a signature
+          is ever produced.
+        </p>
+        <pre class="bg-zinc-950 border border-zinc-800 p-5 text-sm overflow-x-auto whitespace-pre">
+// claude_desktop_config.json
+"agenticpay": {
+  "command": "npx",
+  "args": ["-y", "@agenticpay/mcp-bridge"],
+  "env": {
+    <span class="accent">"AGENTICPAY_BRIDGE_MAX_PER_CALL": "5000"</span>,      // max 0.005 USDC per call
+    <span class="accent">"AGENTICPAY_BRIDGE_SESSION_BUDGET": "100000"</span>  // max 0.10 USDC per session
+  }
+}
+        </pre>
+        <p class="text-zinc-400 leading-relaxed">
+          Amounts are in base units of the payment asset (USDC has 6 decimals).
+          A refused payment comes back to the agent as an ordinary tool error
+          and the wallet is never touched. Session budget is counted when a
+          payment is signed rather than when it settles, so a peer that fails
+          settlement cannot drain you by retrying.
+        </p>
+        <p class="text-xs text-zinc-500">
+          Both caps are opt-in. Leave them unset and the bridge behaves as
+          before, which is fine on devnet and a bad idea with real money.
+        </p>
       </section>
 
       <!-- HOSTED FACILITATOR -->
@@ -280,7 +319,7 @@ FACILITATOR_URL=https://agentpay-facilitator-e9b20a5fee6a.herokuapp.com
         <h2 class="text-2xl font-bold">Why this exists</h2>
         <p class="text-zinc-400 leading-relaxed">
           The current AI agent stack assumes humans hold the credit card. That
-          breaks the moment agents act on their own initiative — calling APIs,
+          breaks the moment agents act on their own initiative - calling APIs,
           hiring sub-agents, paying for compute. You can't OAuth your way
           through it.
         </p>
@@ -311,7 +350,7 @@ FACILITATOR_URL=https://agentpay-facilitator-e9b20a5fee6a.herokuapp.com
           />
           <div class="space-y-3 text-zinc-400 leading-relaxed">
             <p>
-              Hi, I'm <span class="text-zinc-200" itemprop="name">Krystian Gwizdała</span> —
+              Hi, I'm <span class="text-zinc-200" itemprop="name">Krystian Gwizdała</span> -
               a TypeScript engineer based in
               <span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"
                 ><span itemprop="addressLocality">Kraków</span>,
@@ -378,7 +417,7 @@ FACILITATOR_URL=https://agentpay-facilitator-e9b20a5fee6a.herokuapp.com
         +
         <a href="https://solana.com" class="underline hover:text-zinc-300"
           >Solana</a
-        >. Pre-alpha — feedback welcome on
+        >. Pre-alpha - feedback welcome on
         <a
           href="https://github.com/krystiangw/agenticpay/issues"
           class="underline hover:text-zinc-300"
