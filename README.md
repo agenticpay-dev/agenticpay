@@ -1,16 +1,20 @@
 # agenticpay
 
-[![CI](https://github.com/krystiangw/agenticpay/actions/workflows/ci.yml/badge.svg)](https://github.com/krystiangw/agenticpay/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/krystiangw/agenticpay/actions/workflows/codeql.yml/badge.svg)](https://github.com/krystiangw/agenticpay/actions/workflows/codeql.yml)
-[![gitleaks](https://github.com/krystiangw/agenticpay/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/krystiangw/agenticpay/actions/workflows/gitleaks.yml)
+[![CI](https://github.com/agenticpay-dev/agenticpay/actions/workflows/ci.yml/badge.svg)](https://github.com/agenticpay-dev/agenticpay/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/agenticpay-dev/agenticpay/actions/workflows/codeql.yml/badge.svg)](https://github.com/agenticpay-dev/agenticpay/actions/workflows/codeql.yml)
+[![gitleaks](https://github.com/agenticpay-dev/agenticpay/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/agenticpay-dev/agenticpay/actions/workflows/gitleaks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/krystiangw/agenticpay?style=flat&logo=github&color=yellow)](https://github.com/krystiangw/agenticpay/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/agenticpay-dev/agenticpay?style=flat&logo=github&color=yellow)](https://github.com/agenticpay-dev/agenticpay/stargazers)
 [![npm: @agenticpay/sdk](https://img.shields.io/npm/v/@agenticpay/sdk?label=npm%20%40agenticpay%2Fsdk)](https://www.npmjs.com/package/@agenticpay/sdk)
 [![npm downloads](https://img.shields.io/npm/dm/@agenticpay/sdk?label=downloads)](https://www.npmjs.com/package/@agenticpay/sdk)
 
-**[Website](https://krystiangw.github.io/agenticpay/)** ·
-[Spend caps](https://krystiangw.github.io/agenticpay/#spend-caps) ·
+**[Website](https://agenticpay-dev.github.io/)** ·
+[Spend caps](https://agenticpay-dev.github.io/#spend-caps) ·
 [npm](https://www.npmjs.com/package/@agenticpay/mcp-bridge)
+
+<!-- The landing page lives in its own repo so it sits at the root of the
+     host: github.com/agenticpay-dev/agenticpay-dev.github.io -->
+
 
 **Get paid by AI agents.** Open-source payment infrastructure for the MCP
 ecosystem - declare a price on any tool, agents pay in USDC over [x402](https://x402.org),

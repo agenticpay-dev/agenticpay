@@ -1,13 +1,13 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
-  "name": "io.github.krystiangw/agenticpay",
+  "name": "io.github.agenticpay-dev/agenticpay",
   "description": "x402 USDC paywall bridge for MCP — pay per tool call on Solana.",
   "version": "0.1.0",
   "repository": {
-    "url": "https://github.com/krystiangw/agenticpay",
+    "url": "https://github.com/agenticpay-dev/agenticpay",
     "source": "github"
   },
-  "websiteUrl": "https://krystiangw.github.io/agenticpay/",
+  "websiteUrl": "https://agenticpay-dev.github.io/",
   "packages": [
     {
       "registryType": "npm",

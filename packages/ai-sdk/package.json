@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "description": "Vercel AI SDK helpers for x402 paid tool calls — agents pay per tool invocation in USDC on Solana",
   "license": "MIT",
-  "homepage": "https://github.com/krystiangw/agenticpay#readme",
+  "homepage": "https://github.com/agenticpay-dev/agenticpay#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/krystiangw/agenticpay.git",
+    "url": "git+https://github.com/agenticpay-dev/agenticpay.git",
     "directory": "packages/ai-sdk"
   },
   "keywords": [

@@ -24,7 +24,7 @@ CI runs `pnpm -r typecheck` after `pnpm -r build` (CLI depends on SDK's
 
 ## Reporting a bug
 
-Open an issue at <https://github.com/krystiangw/agenticpay/issues>. Please
+Open an issue at <https://github.com/agenticpay-dev/agenticpay/issues>. Please
 include:
 
 - The package and version (`@agenticpay/...`)

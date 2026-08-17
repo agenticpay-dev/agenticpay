@@ -44,7 +44,7 @@
             }
           },
           "402": {
-            "description": "Payment required. The PAYMENT-REQUIRED header carries x402 v2 payment requirements. The GPT must re-issue the request with an X-PAYMENT header containing a signed payload. See github.com/krystiangw/agenticpay."
+            "description": "Payment required. The PAYMENT-REQUIRED header carries x402 v2 payment requirements. The GPT must re-issue the request with an X-PAYMENT header containing a signed payload. See github.com/agenticpay-dev/agenticpay."
           }
         }
       }

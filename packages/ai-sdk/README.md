@@ -90,6 +90,6 @@ For devnet:
 ## Status
 
 Pre-alpha. Devnet validated end-to-end via the
-[agenticpay monorepo](https://github.com/krystiangw/agenticpay).
+[agenticpay monorepo](https://github.com/agenticpay-dev/agenticpay).
 
 MIT licensed.

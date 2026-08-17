@@ -91,7 +91,7 @@ npx -p @agenticpay/cli agentpay balance --wallet ./agent-wallet.json --cluster d
 
 ## Status
 
-Pre-alpha. Devnet validated end-to-end via the [agenticpay monorepo](https://github.com/krystiangw/agenticpay).
+Pre-alpha. Devnet validated end-to-end via the [agenticpay monorepo](https://github.com/agenticpay-dev/agenticpay).
 Mainnet support requires a mainnet-capable facilitator (Coinbase CDP or
 self-hosted with mainnet RPC + funded fee_payer).
 

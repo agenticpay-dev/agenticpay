@@ -24,7 +24,7 @@ and this project adheres to semver once it leaves pre-alpha.
   Anthropic MCP Registry on every GitHub release, via OIDC (no PAT, no
   browser flow).
 - `server.json` — MCP Registry metadata published as
-  `io.github.krystiangw/agenticpay`.
+  `io.github.agenticpay-dev/agenticpay`.
 - `.cursorrules` — Cursor users dropping this file into their repo get
   agenticpay context for free.
 - `CONTRIBUTING.md`, `.github/ISSUE_TEMPLATE/*`, `.github/PULL_REQUEST_TEMPLATE.md`
@@ -56,7 +56,7 @@ and this project adheres to semver once it leaves pre-alpha.
   `agentpay-facilitator-e9b20a5fee6a.herokuapp.com` (devnet).
 - `examples/two-agent-demo` — Claude Opus paying autonomously for tool
   calls. On-chain TX hashes documented in README.
-- Static landing page at <https://krystiangw.github.io/agenticpay/>.
+- Static landing page at <https://agenticpay-dev.github.io/>.
 - PostHog analytics on the landing page and in the facilitator backend
   (anonymous, payer pubkeys hashed before use as distinctId).
 - Security pack: `SECURITY.md`, Dependabot alerts + auto-security-fixes,
