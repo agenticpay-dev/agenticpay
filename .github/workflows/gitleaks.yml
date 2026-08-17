@@ -11,6 +11,15 @@ on:
 permissions:
   contents: read
 
+env:
+  # gitleaks itself is MIT. Only the gitleaks-action wrapper requires a paid
+  # licence once the repo is owned by an organization, which it now is, so we
+  # run the binary directly. Version and checksum are pinned: this workflow is
+  # a supply-chain control, and a control that silently pulls "latest" from the
+  # internet is not one.
+  GITLEAKS_VERSION: "8.30.1"
+  GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+
 jobs:
   scan:
     name: Scan for secrets
@@ -20,7 +29,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: gitleaks/gitleaks-action@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Free for public repos; license required for private use.
+      - name: Install gitleaks (pinned, checksum verified)
+        run: |
+          set -euo pipefail
+          file="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL -o "$file" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${file}"
+          echo "${GITLEAKS_SHA256}  ${file}" | sha256sum -c -
+          tar -xzf "$file" gitleaks
+          chmod +x gitleaks
+          ./gitleaks version
+
+      - name: Scan full history
+        run: ./gitleaks git . --redact --verbose --exit-code 1
