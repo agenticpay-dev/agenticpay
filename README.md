@@ -8,18 +8,22 @@
 [![npm: @agenticpay/sdk](https://img.shields.io/npm/v/@agenticpay/sdk?label=npm%20%40agenticpay%2Fsdk)](https://www.npmjs.com/package/@agenticpay/sdk)
 [![npm downloads](https://img.shields.io/npm/dm/@agenticpay/sdk?label=downloads)](https://www.npmjs.com/package/@agenticpay/sdk)
 
+**[Website](https://krystiangw.github.io/agenticpay/)** ·
+[Spend caps](https://krystiangw.github.io/agenticpay/#spend-caps) ·
+[npm](https://www.npmjs.com/package/@agenticpay/mcp-bridge)
+
 **Get paid by AI agents.** Open-source payment infrastructure for the MCP
-ecosystem — declare a price on any tool, agents pay in USDC over [x402](https://x402.org),
+ecosystem - declare a price on any tool, agents pay in USDC over [x402](https://x402.org),
 settles on Solana in ~1.5 seconds.
 
 No Stripe. No accounts. No API keys.
 
-The full stack is here — SDK, CLI, paywall middleware, **self-hosted x402
+The full stack is here - SDK, CLI, paywall middleware, **self-hosted x402
 facilitator**, and a live LLM agent demo. All TypeScript, MIT licensed.
 
 > **Just want to test it?** Point your `mcp-server` at our hosted devnet
 > facilitator: `FACILITATOR_URL=https://agentpay-facilitator-e9b20a5fee6a.herokuapp.com`
-> — no setup needed.
+> No setup needed.
 
 ## Live demo
 
@@ -58,13 +62,13 @@ On-chain proof (Solana devnet):
 ## Why
 
 The current AI agent stack assumes humans hold the credit card. That breaks
-the moment agents act on their own initiative — calling APIs, hiring
+the moment agents act on their own initiative - calling APIs, hiring
 sub-agents, paying for compute. You can't OAuth your way through it.
 
 Stablecoin micropayments over HTTP fix it. agenticpay packages the missing
 ergonomics for the MCP ecosystem specifically: any tool can declare a price,
-any agent can pay it, and the whole pipeline — including the facilitator that
-actually submits the on-chain settlement — is open source and self-hostable.
+any agent can pay it, and the whole pipeline - including the facilitator that
+actually submits the on-chain settlement - is open source and self-hostable.
 
 ## Architecture
 
@@ -99,11 +103,11 @@ self-hosted route easy.
 | Package | What it does |
 |---|---|
 | `packages/sdk` | TypeScript primitives: USDC transfers, wallet management, network config |
-| `packages/cli` | `agenticpay` command — wallet, balance, send |
+| `packages/cli` | `agenticpay` command - wallet, balance, send |
 | `packages/mcp-server` | HTTP server with x402 paywall middleware. Each tool has a price. |
-| `packages/facilitator` | **Self-hosted x402 facilitator** — verify + settle USDC payments on Solana. Pays SOL fees on behalf of agents. |
-| `packages/eliza-plugin` | **Eliza plugin** — wraps paid HTTP endpoints as native Eliza Actions. Solana-native AI agents pay per tool call. |
-| `packages/ai-sdk` | **Vercel AI SDK helpers** — drop paid tools straight into `generateText` / `streamText`. |
+| `packages/facilitator` | **Self-hosted x402 facilitator** - verify + settle USDC payments on Solana. Pays SOL fees on behalf of agents. |
+| `packages/eliza-plugin` | **Eliza plugin** - wraps paid HTTP endpoints as native Eliza Actions. Solana-native AI agents pay per tool call. |
+| `packages/ai-sdk` | **Vercel AI SDK helpers** - drop paid tools straight into `generateText` / `streamText`. |
 | `packages/mcp-bridge` | **Real MCP server** (stdio + `@modelcontextprotocol/sdk`) wrapping x402 paid tools. Drop into Claude Desktop / Cursor. |
 | `examples/two-agent-demo` | Real Claude Opus agent paying for tool calls |
 
@@ -120,13 +124,13 @@ npm install -g @agenticpay/mcp-bridge # MCP server for Claude Desktop / Cursor
 ```
 
 Or clone the monorepo to get the live two-agent demo and edit-friendly
-templates (recommended for first run — see Quickstart below).
+templates (recommended for first run - see Quickstart below).
 
 ## Use with Claude Code
 
 This repo ships an [Anthropic Skill](https://docs.claude.com/en/docs/claude-code/skills)
 at `.claude/skills/agenticpay/SKILL.md`. Copy it into your `~/.claude/skills/`
-to give Claude Code first-class context about agenticpay — it'll then walk you
+to give Claude Code first-class context about agenticpay - it'll then walk you
 through monetizing an MCP server, generating tool routes, and verifying
 on-chain settlements without re-reading the README every time.
 
@@ -148,10 +152,10 @@ node packages/cli/dist/index.js wallet show
 # → fund SOL at https://faucet.solana.com  (paste pubkey)
 # → fund USDC at https://faucet.circle.com (Solana Devnet, same pubkey)
 
-# 3. (option A — fastest) Use our hosted devnet facilitator. Skip step 4.
+# 3. (option A - fastest) Use our hosted devnet facilitator. Skip step 4.
 export FACILITATOR_URL=https://agentpay-facilitator-e9b20a5fee6a.herokuapp.com
 
-# 3. (option B — fully self-hosted) Start your own facilitator (terminal 1)
+# 3. (option B - fully self-hosted) Start your own facilitator (terminal 1)
 pnpm --filter @agenticpay/facilitator dev
 # Note the printed feePayer address. It needs ~0.05 SOL devnet to cover fees.
 # Either airdrop or use the helper:
@@ -192,7 +196,7 @@ funding the facilitator with real SOL and pointing at a mainnet-capable RPC
 
 - [x] Devnet end-to-end demo (smoke + LLM agent)
 - [x] Self-hosted x402 facilitator (verify + settle, fee_payer abstraction)
-- [ ] Real-world MCP server template (search, fetch, summarize, extract — instead of toy `reverse_string`)
+- [ ] Real-world MCP server template (search, fetch, summarize, extract - instead of toy `reverse_string`)
 - [ ] On-chain escrow for long-running tasks (Anchor program)
 - [ ] Agent reputation registry on-chain
 - [ ] Hosted facilitator service (`agenticpay.com`)
@@ -202,7 +206,7 @@ funding the facilitator with real SOL and pointing at a mainnet-capable RPC
 If you've never seen x402 before: the **facilitator** is the trusted middleman
 that (1) verifies an agent's signed payment payload, (2) submits the USDC
 transfer on-chain, and (3) pays the SOL gas fees so the agent doesn't need
-any SOL — only USDC. Most MCP devs don't want to run their own; they point
+any SOL - only USDC. Most MCP devs don't want to run their own; they point
 at a hosted one.
 
 This repo ships a complete facilitator implementation. You can self-host it,
@@ -217,16 +221,16 @@ irreversible push, so the middleware is careful about *when* it settles:
    requirements match) is verified before your tool handler runs. Invalid
    payment → HTTP 402, the tool never executes.
 2. **Execute with a buffered response.** The handler runs, but its response is
-   held back — nothing is sent to the agent yet.
+   held back - nothing is sent to the agent yet.
 3. **Settle only on success.** If the handler responds with status ≥ 400, the
    middleware skips settlement entirely and just returns the error. The agent
    pays nothing for a failed call.
 4. **No result without payment.** If on-chain settlement itself fails, the
    buffered tool result is discarded and the agent gets a payment error
-   instead — the server never leaks a result it wasn't paid for.
+   instead - the server never leaks a result it wasn't paid for.
 
 What this doesn't cover: a tool that returns `200 OK` with a junk answer is
-still charged — the protocol can't judge response quality. That's what keeps
+still charged - the protocol can't judge response quality. That's what keeps
 per-call prices micro ($0.0005–$0.001 in the demo): the worst case is capped
 at one call's price, and quality enforcement belongs to a reputation layer
 (see Roadmap) rather than the payment protocol.
