@@ -102,4 +102,4 @@ bridge wallet only needs USDC.
 Pre-alpha. Devnet-validated. Mainnet works once you fund the wallet with
 real USDC and point at a mainnet-capable facilitator.
 
-MIT licensed. See [agenticpay monorepo](https://github.com/krystiangw/agenticpay).
+MIT licensed. See [agenticpay monorepo](https://github.com/agenticpay-dev/agenticpay).

@@ -7,7 +7,7 @@
  * Action that calls a paywalled endpoint becomes a paid action.
  *
  * Status: SKETCH. Not yet published as an Eliza plugin. Want to ship it?
- * See https://github.com/krystiangw/agenticpay/issues
+ * See https://github.com/agenticpay-dev/agenticpay/issues
  *
  * Install in your Eliza agent:
  *   pnpm add @agenticpay/sdk @x402/core @x402/fetch @x402/svm @solana/kit
