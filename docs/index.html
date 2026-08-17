@@ -257,9 +257,10 @@ Task: Reverse 'agenticpay rocks' and tell me how many words are in
             Holds the wallet, signs each payment, enforces the spend caps below.
           </li>
           <li>
-            <span class="accent">packages/facilitator</span> - first
-            open-source x402 facilitator. Verify + settle on Solana, pays SOL
-            fees on behalf of the agent.
+            <span class="accent">packages/facilitator</span> - self-hosted
+            x402 facilitator. Verify + settle on Solana, pays SOL fees on
+            behalf of the agent. Run your own instead of trusting someone
+            else's with your settlement path.
           </li>
           <li>
             <span class="accent">examples/two-agent-demo</span> - Claude Opus
@@ -269,7 +270,7 @@ Task: Reverse 'agenticpay rocks' and tell me how many words are in
       </section>
 
       <!-- SPEND CAPS -->
-      <section class="space-y-4">
+      <section id="spend-caps" class="space-y-4 scroll-mt-8">
         <h2 class="text-2xl font-bold">The agent pays. You set the ceiling.</h2>
         <p class="text-zinc-400 leading-relaxed">
           An agent holding a wallet and signing its own payments is the whole
