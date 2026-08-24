@@ -6,6 +6,7 @@
  *   POST /verify               → verify a signed payment payload (no on-chain submit)
  *   POST /settle               → submit the signed payload on-chain and confirm
  *   GET  /discovery/resources  → Bazaar index of resources we've seen paid for
+ *   GET  /discovery/search     → ranked Bazaar search over the resource index
  *
  * Backed by @x402/core/facilitator + @x402/svm/exact/facilitator. Our own
  * keypair (./wallets/facilitator.json by default) is the fee_payer for every
@@ -219,6 +220,29 @@ async function main() {
     );
   });
 
+  app.get("/discovery/search", readLimiter, (req, res) => {
+    const query = asQueryString(req.query.query);
+    if (query === undefined || query.trim().length === 0) {
+      return res.status(400).json({
+        error: "missing_query",
+        message: "The query parameter is required and must not be empty.",
+      });
+    }
+
+    return res.json(
+      catalog.search({
+        query,
+        type: asQueryString(req.query.type),
+        payTo: asQueryString(req.query.payTo),
+        scheme: asQueryString(req.query.scheme),
+        network: asQueryString(req.query.network),
+        extensions: asQueryString(req.query.extensions),
+        limit: asQueryString(req.query.limit),
+        cursor: asQueryString(req.query.cursor),
+      })
+    );
+  });
+
   // Express hands back string | string[] | object for a query param depending
   // on how the client spelled it (`?a=1&a=2` yields an array). Collapse to the
   // first plain string so a repeated or nested param degrades to a normal
@@ -392,14 +416,17 @@ async function main() {
       // Advertise the Bazaar index here: the root document is the only thing a
       // client can fetch without knowing our routes, so discovery has to be
       // reachable from it.
-      discovery: { resources: "/discovery/resources" },
+      discovery: {
+        resources: "/discovery/resources",
+        search: "/discovery/search",
+      },
     });
   });
 
   const server = app.listen(PORT, () => {
     console.log(`agenticpay facilitator listening on http://localhost:${PORT}`);
     console.log(
-      `endpoints: GET / | GET /supported | POST /verify | POST /settle | GET /discovery/resources`
+      `endpoints: GET / | GET /supported | POST /verify | POST /settle | GET /discovery/resources | GET /discovery/search`
     );
     console.log("---");
     console.log(

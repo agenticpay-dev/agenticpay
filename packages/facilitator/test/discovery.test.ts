@@ -541,6 +541,247 @@ describe("filtering and pagination", () => {
   });
 });
 
+describe("searching discovery resources", () => {
+  test("matches serviceName, tags and description fragments", () => {
+    const c = openCatalog();
+    c.record(
+      payload({
+        url: "https://search.example/service",
+        resource: { serviceName: "Weather Forecast" },
+      }),
+      reqs()
+    );
+    c.record(
+      payload({
+        url: "https://search.example/tags",
+        resource: { tags: ["climate", "observations"] },
+      }),
+      reqs()
+    );
+    c.record(
+      payload({
+        url: "https://search.example/description",
+        resource: { description: "Minute by minute rainfall estimates" },
+      }),
+      reqs()
+    );
+
+    assert.equal(c.search({ query: "forecast" }).resources.length, 1);
+    assert.equal(c.search({ query: "climate" }).resources.length, 1);
+    assert.equal(c.search({ query: "rainfall est" }).resources.length, 1);
+  });
+
+  test("requires every query token to match", () => {
+    const c = openCatalog();
+    c.record(
+      payload({ resource: { serviceName: "Weather Forecast" } }),
+      reqs()
+    );
+    assert.deepEqual(c.search({ query: "forecast impossible" }).resources, []);
+  });
+
+  test("matching is case insensitive", () => {
+    const c = openCatalog();
+    c.record(
+      payload({ resource: { description: "Hourly Weather Forecast" } }),
+      reqs()
+    );
+    assert.equal(c.search({ query: "hOuRlY wEaThEr" }).resources.length, 1);
+  });
+
+  test("ranks weighted fields first and freshness breaks score ties", () => {
+    const c = openCatalog();
+    c.record(
+      payload({
+        url: "https://rank.example/older",
+        resource: { description: "needle" },
+      }),
+      reqs()
+    );
+    c.record(
+      payload({
+        url: "https://rank.example/needle",
+      }),
+      reqs()
+    );
+    c.record(
+      payload({
+        url: "https://rank.example/tags",
+        resource: { tags: ["needle"] },
+      }),
+      reqs()
+    );
+    c.record(
+      payload({
+        url: "https://rank.example/service",
+        resource: { serviceName: "Needle" },
+      }),
+      reqs()
+    );
+    c.record(
+      payload({
+        url: "https://rank.example/newer",
+        resource: { description: "needle" },
+      }),
+      reqs()
+    );
+
+    assert.deepEqual(
+      c.search({ query: "needle" }).resources.map((entry) => entry.resource),
+      [
+        "https://rank.example/service",
+        "https://rank.example/tags",
+        "https://rank.example/newer",
+        "https://rank.example/older",
+        "https://rank.example/needle",
+      ]
+    );
+  });
+
+  test("list filters narrow search results through the shared logic", () => {
+    const c = openCatalog();
+    c.record(
+      payload({
+        url: "https://search.example/http",
+        resource: { description: "shared search term" },
+      }),
+      reqs()
+    );
+    c.record(
+      payload({
+        url: "https://search.example/mcp",
+        resource: { description: "shared search term" },
+        extensions: mcpDeclaration(),
+      }),
+      reqs()
+    );
+
+    const result = c.search({ query: "shared", type: "mcp" });
+    assert.equal(result.resources.length, 1);
+    assert.equal(result.resources[0]!.type, "mcp");
+  });
+
+  test("empty or punctuation-only queries match nothing", () => {
+    const c = openCatalog();
+    c.record(payload({ resource: { description: "searchable" } }), reqs());
+    assert.deepEqual(c.search({ query: "" }).resources, []);
+    assert.deepEqual(c.search({ query: " ,... !!! " }).resources, []);
+  });
+
+  test("limit defaults and clamps exactly like listing", () => {
+    const c = openCatalog();
+    for (let i = 0; i < 105; i++) {
+      c.record(
+        payload({
+          url: `https://limit.example/${i}`,
+          resource: { description: "common" },
+        }),
+        reqs()
+      );
+    }
+
+    assert.equal(c.search({ query: "common" }).resources.length, 20);
+    assert.equal(
+      c.search({ query: "common", limit: "999" }).resources.length,
+      100
+    );
+  });
+
+  test("cursor continues from the prior page and ends with null", () => {
+    const c = openCatalog();
+    for (let i = 0; i < 5; i++) {
+      c.record(
+        payload({
+          url: `https://cursor.example/${i}`,
+          resource: { description: "paged" },
+        }),
+        reqs()
+      );
+    }
+
+    const first = c.search({ query: "paged", limit: "2" });
+    assert.deepEqual(
+      first.resources.map((resource) => resource.resource),
+      ["https://cursor.example/4", "https://cursor.example/3"]
+    );
+    assert.equal(typeof first.pagination?.cursor, "string");
+    assert.equal(first.partialResults, true);
+
+    const second = c.search({
+      query: "paged",
+      limit: "2",
+      cursor: first.pagination?.cursor,
+    });
+    assert.deepEqual(
+      second.resources.map((resource) => resource.resource),
+      ["https://cursor.example/2", "https://cursor.example/1"]
+    );
+    assert.equal(second.partialResults, true);
+
+    const last = c.search({
+      query: "paged",
+      limit: "2",
+      cursor: second.pagination?.cursor,
+    });
+    assert.deepEqual(
+      last.resources.map((resource) => resource.resource),
+      ["https://cursor.example/0"]
+    );
+    assert.equal(last.pagination?.cursor, null);
+    assert.equal(Object.hasOwn(last, "partialResults"), false);
+  });
+
+  test("a malformed cursor restarts from the first result", () => {
+    const c = openCatalog();
+    for (let i = 0; i < 3; i++) {
+      c.record(
+        payload({
+          url: `https://bad-cursor.example/${i}`,
+          resource: { description: "restart" },
+        }),
+        reqs()
+      );
+    }
+
+    const first = c.search({ query: "restart", limit: "1" });
+    const malformed = c.search({
+      query: "restart",
+      limit: "1",
+      cursor: "nonsens",
+    });
+    assert.deepEqual(malformed.resources, first.resources);
+  });
+
+  test("partialResults appears only while another match remains", () => {
+    const c = openCatalog();
+    c.record(payload({ resource: { description: "single" } }), reqs());
+
+    const result = c.search({ query: "single", limit: "100" });
+    assert.equal(Object.hasOwn(result, "partialResults"), false);
+    assert.equal(result.pagination?.cursor, null);
+  });
+
+  test("long queries are bounded by both character and token limits", () => {
+    const tokens = Array.from({ length: 16 }, (_, i) => `word${i}`);
+    const c = openCatalog();
+    c.record(
+      payload({ resource: { description: tokens.join(" ") } }),
+      reqs()
+    );
+    const query = `${tokens.join(" ")} absent ${"padding ".repeat(2000)}`;
+
+    assert.equal(c.search({ query }).resources.length, 1);
+  });
+
+  test("response follows the search SDK shape", () => {
+    const result = openCatalog().search({ query: "anything" });
+    assert.equal(result.x402Version, 2);
+    assert.ok(Array.isArray(result.resources));
+    assert.equal(Object.hasOwn(result, "items"), false);
+    assert.deepEqual(result.pagination, { limit: 20, cursor: null });
+  });
+});
+
 describe("the index is bounded", () => {
   test("it holds 1000 entries and evicts the least recently updated", () => {
     const c = openCatalog();
