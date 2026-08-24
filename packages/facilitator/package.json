@@ -45,7 +45,7 @@
     "@x402/svm": "^2.22.0",
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.1",
-    "posthog-node": "^5.49.1"
+    "posthog-node": "^5.49.2"
   },
   "devDependencies": {
     "@solana-program/compute-budget": "^0.17.0",
