@@ -1,5 +1,5 @@
 /**
- * Bazaar resource catalog backing `GET /discovery/resources`.
+ * Bazaar resource catalog backing the facilitator discovery endpoints.
  *
  * x402 spec v2 §8 puts the discovery index on the facilitator: resource servers
  * advertise their endpoint spec in the 402 response via the `bazaar` extension,
@@ -20,6 +20,7 @@
  * process.
  */
 import type { PaymentPayload, PaymentRequirements } from "@x402/core/types";
+import type { SearchDiscoveryResourcesResponse } from "@x402/extensions";
 import {
   extractDiscoveryInfo,
   validateDiscoveryExtensionSpec,
@@ -55,6 +56,22 @@ export interface DiscoveryQuery {
   offset?: unknown;
 }
 
+export interface DiscoverySearchQuery {
+  query: string;
+  type?: string | undefined;
+  payTo?: string | undefined;
+  scheme?: string | undefined;
+  network?: string | undefined;
+  extensions?: string | undefined;
+  limit?: unknown;
+  cursor?: unknown;
+}
+
+type DiscoveryFilters = Pick<
+  DiscoveryQuery,
+  "type" | "payTo" | "scheme" | "network" | "extensions"
+>;
+
 // An unauthenticated index is an obvious spam target, so it is bounded. When
 // full we evict the least recently updated entry — a resource nobody has paid
 // for in a while is the one we care least about advertising.
@@ -86,6 +103,22 @@ const MAX_TIMEOUT_SECONDS = 86_400;
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
+
+// Natural-language input is public and searched against every catalog entry.
+// Truncating at a useful sentence length keeps both retained work and matching
+// cost bounded without adding an error shape the Bazaar search contract lacks.
+const MAX_SEARCH_QUERY_LENGTH = 256;
+
+// A separate token cap matters even with the character bound: many one-letter
+// words would otherwise multiply substring checks across all 1000 entries.
+const MAX_SEARCH_TOKENS = 16;
+
+// A continuation token generated here is under 100 characters. The larger cap
+// leaves format headroom while preventing a public request from making JSON
+// decoding inspect an arbitrarily large attacker-controlled string.
+const MAX_SEARCH_CURSOR_LENGTH = 256;
+
+const SEARCH_CURSOR_KIND = "agenticpay-discovery-search-v1";
 
 export class ResourceCatalog {
   /** Entries keyed by normalized resource URL, in order of last update. */
@@ -299,7 +332,62 @@ export class ResourceCatalog {
     // rather than sorting on lastUpdated: two resources recorded in the same
     // millisecond tie, and insertion order is exact anyway, because record()
     // re-inserts on update and eviction drops from the front.
-    const matched = [...this.entries.values()]
+    const matched = this.filtered(q);
+
+    return {
+      x402Version: 2,
+      items: matched.slice(offset, offset + limit),
+      pagination: { limit, offset, total: matched.length },
+    };
+  }
+
+  /** Search per the Bazaar SDK's `SearchDiscoveryResourcesResponse`. */
+  search(q: DiscoverySearchQuery): SearchDiscoveryResourcesResponse {
+    const limit = clampInt(q.limit, DEFAULT_LIMIT, 1, MAX_LIMIT);
+    const offset = decodeSearchCursor(q.cursor);
+    const tokens = tokenizeSearchQuery(q.query);
+
+    if (tokens.length === 0) {
+      return {
+        x402Version: 2,
+        resources: [],
+        pagination: { limit, cursor: null },
+      };
+    }
+
+    const matched = this.filtered(q)
+      .map((entry) => ({ entry, score: searchScore(entry, tokens) }))
+      .filter((candidate) => candidate.score !== null)
+      .sort(
+        (a, b) =>
+          b.score! - a.score! ||
+          Date.parse(b.entry.lastUpdated) - Date.parse(a.entry.lastUpdated)
+      )
+      .map((candidate) => candidate.entry);
+
+    const resources = matched.slice(offset, offset + limit);
+    const nextOffset = offset + resources.length;
+    const hasMore = nextOffset < matched.length;
+
+    return {
+      x402Version: 2,
+      resources,
+      // Bazaar calls this "truncated" but does not define it around cursors.
+      // Treat it as "there is another match after this page", which gives a
+      // client an actionable and stable meaning while it follows pagination.
+      ...(hasMore ? { partialResults: true } : {}),
+      pagination: {
+        limit,
+        cursor: hasMore ? encodeSearchCursor(nextOffset) : null,
+      },
+    };
+  }
+
+  private filtered(q: DiscoveryFilters): DiscoveredResource[] {
+    // Newest first, so listing and equally ranked search results both favor
+    // live resources. Map insertion order is exact even when ISO timestamps
+    // tie within the same millisecond, because record() re-inserts on update.
+    return [...this.entries.values()]
       .reverse()
       .map((held) => held.entry)
       .filter((e) => !q.type || e.type === q.type)
@@ -307,12 +395,6 @@ export class ResourceCatalog {
       .filter((e) => !q.payTo || acceptsSome(e, "payTo", q.payTo))
       .filter((e) => !q.scheme || acceptsSome(e, "scheme", q.scheme))
       .filter((e) => !q.network || acceptsSome(e, "network", q.network));
-
-    return {
-      x402Version: 2,
-      items: matched.slice(offset, offset + limit),
-      pagination: { limit, offset, total: matched.length },
-    };
   }
 
   get size(): number {
@@ -521,6 +603,76 @@ function acceptsSome(
   value: string
 ): boolean {
   return e.accepts.some((a) => a[field] === value);
+}
+
+function tokenizeSearchQuery(raw: string): string[] {
+  return raw
+    .slice(0, MAX_SEARCH_QUERY_LENGTH)
+    .toLowerCase()
+    .split(/[\s\p{P}\p{S}]+/u)
+    .filter((token) => token.length > 0)
+    .slice(0, MAX_SEARCH_TOKENS);
+}
+
+/** A null score means at least one query token was absent from every field. */
+function searchScore(e: DiscoveredResource, tokens: string[]): number | null {
+  const serviceName = e.serviceName?.toLowerCase() ?? "";
+  const tags = e.tags?.map((tag) => tag.toLowerCase()) ?? [];
+  const description = e.description?.toLowerCase() ?? "";
+  const resource = e.resource.toLowerCase();
+  const type = e.type.toLowerCase();
+  let score = 0;
+
+  for (const token of tokens) {
+    let tokenScore = 0;
+    if (serviceName.includes(token)) tokenScore += 16;
+    if (tags.some((tag) => tag.includes(token))) tokenScore += 8;
+    if (description.includes(token)) tokenScore += 4;
+    if (resource.includes(token)) tokenScore += 2;
+    if (type.includes(token)) tokenScore += 1;
+    if (tokenScore === 0) return null;
+    score += tokenScore;
+  }
+
+  return score;
+}
+
+function encodeSearchCursor(offset: number): string {
+  return Buffer.from(
+    JSON.stringify({ kind: SEARCH_CURSOR_KIND, offset }),
+    "utf8"
+  ).toString("base64url");
+}
+
+function decodeSearchCursor(raw: unknown): number {
+  if (
+    typeof raw !== "string" ||
+    raw.length === 0 ||
+    raw.length > MAX_SEARCH_CURSOR_LENGTH
+  ) {
+    return 0;
+  }
+
+  try {
+    const decoded: unknown = JSON.parse(
+      Buffer.from(raw, "base64url").toString("utf8")
+    );
+    if (!isPlainObject(decoded)) return 0;
+    if (decoded.kind !== SEARCH_CURSOR_KIND) return 0;
+    const offset = decoded.offset;
+    if (
+      typeof offset !== "number" ||
+      !Number.isSafeInteger(offset) ||
+      offset < 0
+    ) {
+      return 0;
+    }
+    return offset;
+  } catch {
+    // Cursors are advisory, so malformed or foreign values restart the search
+    // instead of turning an otherwise valid public query into an error.
+    return 0;
+  }
 }
 
 /** Trim free-text metadata to a sane length, or drop it entirely. */
