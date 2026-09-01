@@ -48,8 +48,8 @@
     "posthog-node": "^5.51.4"
   },
   "devDependencies": {
-    "@solana-program/compute-budget": "^0.17.0",
-    "@solana-program/token": "^0.15.0",
+    "@solana-program/compute-budget": "^0.18.0",
+    "@solana-program/token": "^0.16.0",
     "@types/express": "^5.0.6",
     "@types/node": "^26.2.0"
   }
