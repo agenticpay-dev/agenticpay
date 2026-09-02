@@ -29,6 +29,7 @@ import { toFacilitatorSvmSigner } from "@x402/svm";
 import { loadOrCreateFacilitatorSigner } from "./keypair.js";
 import { analytics } from "./analytics.js";
 import { ResourceCatalog } from "./discovery.js";
+import { FeePayerReadiness } from "./readiness.js";
 
 // Lower bound on payment amounts we'll accept. 100 base units of USDC is
 // $0.0001 — anything less is almost certainly spam, since the SOL fee paid
@@ -53,6 +54,33 @@ const DEVNET_RPC =
   process.env.SOLANA_DEVNET_RPC ?? "https://api.devnet.solana.com";
 const MAINNET_RPC =
   process.env.SOLANA_MAINNET_RPC ?? "https://api.mainnet-beta.solana.com";
+
+function positiveBigInt(raw: string | undefined, fallback: bigint): bigint {
+  try {
+    const value = BigInt(raw ?? "");
+    return value > 0n ? value : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function positiveInteger(raw: string | undefined, fallback: number): number {
+  const value = Number(raw);
+  return Number.isSafeInteger(value) && value > 0 ? value : fallback;
+}
+
+const MIN_FEE_PAYER_LAMPORTS = positiveBigInt(
+  process.env.FACILITATOR_MIN_FEE_PAYER_LAMPORTS,
+  10_000_000n
+);
+const READINESS_INTERVAL_MS = positiveInteger(
+  process.env.FACILITATOR_READINESS_INTERVAL_MS,
+  60_000
+);
+const READINESS_RPC_TIMEOUT_MS = positiveInteger(
+  process.env.FACILITATOR_READINESS_RPC_TIMEOUT_MS,
+  8_000
+);
 
 // Which resources this facilitator publishes in its Bazaar index, as
 // `origin=payee` pairs:
@@ -111,11 +139,6 @@ async function main() {
   console.log(`Facilitator signer: ${signer.address}`);
   console.log(`Keypair persisted:  ${KEYPAIR_PATH}`);
 
-  analytics.capture("facilitator_started", undefined, {
-    feePayer: signer.address,
-    networks: [SOLANA_DEVNET_CAIP2, SOLANA_MAINNET_CAIP2],
-  });
-
   // RPC client per network so the facilitator can simulate/submit on each.
   const rpcByNetwork: Record<string, ReturnType<typeof createSolanaRpc>> = {
     [SOLANA_DEVNET_CAIP2]: createSolanaRpc(devnetRpc(DEVNET_RPC)),
@@ -124,6 +147,22 @@ async function main() {
 
   const facilitatorSigner = toFacilitatorSvmSigner(signer, rpcByNetwork);
   const scheme = new ExactSvmScheme(facilitatorSigner);
+
+  const readiness = new FeePayerReadiness(
+    [SOLANA_DEVNET_CAIP2, SOLANA_MAINNET_CAIP2],
+    async (network) => {
+      const rpc = rpcByNetwork[network];
+      if (!rpc) throw new Error(`No RPC client configured for ${network}`);
+      // Startup waits for this measurement, so a stuck endpoint needs a bound
+      // just like an explicit RPC failure. Unknown networks remain withheld.
+      const { value } = await rpc.getBalance(signer.address).send({
+        abortSignal: AbortSignal.timeout(READINESS_RPC_TIMEOUT_MS),
+      });
+      return value;
+    },
+    MIN_FEE_PAYER_LAMPORTS,
+    READINESS_INTERVAL_MS
+  );
 
   const facilitator = new x402Facilitator()
     .register([SOLANA_DEVNET_CAIP2, SOLANA_MAINNET_CAIP2], scheme)
@@ -141,6 +180,15 @@ async function main() {
     .onSettleFailure(async (ctx) => {
       console.warn(`[settle FAIL] ${ctx.error.message}`);
     });
+
+  function supportedReadyNetworks() {
+    const ready = new Set(readiness.readyNetworks());
+    const supported = facilitator.getSupported();
+    return {
+      ...supported,
+      kinds: supported.kinds.filter((kind) => ready.has(kind.network)),
+    };
+  }
 
   const app = express();
   // Trust the Heroku/Fly.io reverse proxy so rate limiting keys on the real
@@ -194,7 +242,7 @@ async function main() {
   }
 
   app.get("/supported", readLimiter, (_req, res) => {
-    res.json(facilitator.getSupported());
+    res.json(supportedReadyNetworks());
   });
 
   // Bazaar index (x402 spec v2 §8.1), refreshed from the settlements below.
@@ -406,13 +454,25 @@ async function main() {
   }));
 
   app.get("/", readLimiter, (_req, res) => {
-    const supported = facilitator.getSupported();
+    const supported = supportedReadyNetworks();
     res.json({
       service: "agenticpay-facilitator",
       version: "0.0.1",
       feePayer: signer.address,
       networks: supported.kinds.map((k) => k.network),
       kinds: supported.kinds,
+      // Same rule as GENERIC_VERIFY_ERROR above: the balance itself is public
+      // on chain, so it can be shown, but the RPC exception cannot. Its text
+      // carries library internals and the configured endpoint, and this route
+      // is unauthenticated. Callers get whether the last check failed, and the
+      // reason stays in the logs.
+      feePayerReadiness: readiness.snapshot().map((state) => ({
+        network: state.network,
+        ready: state.ready,
+        lamports: state.lamports?.toString() ?? null,
+        checkedAt: state.checkedAt,
+        lastCheckFailed: state.error !== null,
+      })),
       // Advertise the Bazaar index here: the root document is the only thing a
       // client can fetch without knowing our routes, so discovery has to be
       // reachable from it.
@@ -423,17 +483,41 @@ async function main() {
     });
   });
 
+  // The first response must be based on a real attempt, but an RPC outage must
+  // not prevent the service from starting with all unknown networks withheld.
+  await readiness.refresh();
+  readiness.start();
+
+  const readyNetworks = readiness.readyNetworks();
+  analytics.capture("facilitator_started", undefined, {
+    feePayer: signer.address,
+    networks: readyNetworks,
+    withheldNetworkCount:
+      readiness.snapshot().length - readyNetworks.length,
+  });
+
   const server = app.listen(PORT, () => {
     console.log(`agenticpay facilitator listening on http://localhost:${PORT}`);
     console.log(
       `endpoints: GET / | GET /supported | POST /verify | POST /settle | GET /discovery/resources | GET /discovery/search`
     );
     console.log("---");
-    console.log(
-      "Before serving real settlements, fund the fee payer with SOL on each network."
-    );
-    console.log(`  devnet:  https://faucet.solana.com  → ${signer.address}`);
-    console.log(`  mainnet: send ~0.01 SOL from any wallet → ${signer.address}`);
+    for (const state of readiness.snapshot()) {
+      const status = state.ready ? "READY" : "WITHHELD";
+      const balance = state.lamports === null ? "unknown" : state.lamports.toString();
+      const error = state.error === null ? "" : `, error=${state.error}`;
+      console.log(
+        `[fee payer] ${state.network}: ${status}, lamports=${balance}${error}`
+      );
+    }
+    if (readiness.readyNetworks().length < readiness.snapshot().length) {
+      // A withheld network is not served at all, so say how to un-withhold it.
+      console.log(
+        `Withheld networks are not advertised. Fund ${signer.address} to enable them:`
+      );
+      console.log("  devnet:  https://faucet.solana.com");
+      console.log("  mainnet: send ~0.01 SOL from any wallet");
+    }
   });
 
   // Heroku sends SIGTERM on every dyno cycle or relocation and SIGKILLs 30s
@@ -449,6 +533,7 @@ async function main() {
   const shutdown = async (signal: string) => {
     if (shuttingDown) return;
     shuttingDown = true;
+    readiness.stop();
     console.log(`[shutdown] ${signal} received, draining`);
 
     // Unref'd so it never holds the process open by itself, but still fires if
