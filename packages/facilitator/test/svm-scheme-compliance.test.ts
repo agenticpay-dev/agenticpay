@@ -45,6 +45,40 @@ import {
 } from "@solana-program/token";
 import { ExactSvmScheme } from "@x402/svm/exact/facilitator";
 
+/**
+ * Canonical rejection reasons, mirroring the constants in
+ * @x402/svm `src/exact/facilitator/errors.ts`.
+ *
+ * These are wire-visible: whatever the library returns here is what our
+ * /verify hands back to a client. x402 2.24.0 renamed them, adding the
+ * `invalid_exact_svm_` prefix that the scheme spec requires and that the Go
+ * and Python SDKs already used; the unprefixed spellings survive only in the
+ * v1/legacy and EVM paths. So the rename made the library conformant and it
+ * is these tests that were pinning the wrong strings, not the other way round.
+ *
+ * Naming them once, here, is deliberate: the 2.24.0 rename touched four of
+ * these and the rest were already prefixed, which is exactly how a scattered
+ * set of literals hides a change. Kept together, the next rename breaks in one
+ * place with an obvious diff.
+ */
+const REASON = {
+  simulationFailed: "invalid_exact_svm_transaction_simulation_failed",
+  feePayerNotManaged: "invalid_exact_svm_fee_payer_not_managed_by_facilitator",
+  networkMismatch: "invalid_exact_svm_network_mismatch",
+  unsupportedScheme: "invalid_exact_svm_unsupported_scheme",
+  feePayerTransferringFunds:
+    "invalid_exact_svm_payload_transaction_fee_payer_transferring_funds",
+  missingFeePayer: "invalid_exact_svm_payload_missing_fee_payer",
+  instructionsLength: "invalid_exact_svm_payload_transaction_instructions_length",
+  noTransferInstruction: "invalid_exact_svm_payload_no_transfer_instruction",
+  mintMismatch: "invalid_exact_svm_payload_mint_mismatch",
+  recipientMismatch: "invalid_exact_svm_payload_recipient_mismatch",
+  amountMismatch: "invalid_exact_svm_payload_amount_mismatch",
+  memoMismatch: "invalid_exact_svm_payload_memo_mismatch",
+  memoCount: "invalid_exact_svm_payload_memo_count",
+  undecodableTransaction: "invalid_exact_svm_payload_transaction_could_not_be_decoded",
+} as const;
+
 const NETWORK = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
 const OTHER_NETWORK = "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1";
 const MINT = address("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
@@ -182,7 +216,7 @@ describe("exact/SVM scheme compliance", () => {
     // Simulation is the last step, so getting there means every structural rule
     // passed. Without this, a rejection in the cases below could come from a
     // broken fixture rather than from the rule being tested.
-    assert.equal(result.invalidReason, "transaction_simulation_failed");
+    assert.equal(result.invalidReason, REASON.simulationFailed);
     assert.equal(result.invalidMessage, SIMULATION_REACHED);
     assert.equal(result.payer, payerSigner.address);
   });
@@ -195,7 +229,7 @@ describe("exact/SVM scheme compliance", () => {
       const result = await verify(payloadFor(transaction), requirements());
       assert.equal(
         result.invalidReason,
-        "invalid_exact_svm_payload_transaction_fee_payer_transferring_funds",
+        REASON.feePayerTransferringFunds,
       );
     });
 
@@ -229,7 +263,7 @@ describe("exact/SVM scheme compliance", () => {
       const result = await verify(payloadFor(transaction), requirements());
       assert.equal(
         result.invalidReason,
-        "transaction_simulation_failed",
+        REASON.simulationFailed,
         "if this ever becomes a structural rejection, the library started checking " +
           "the source and this test should assert the rejection instead",
       );
@@ -241,7 +275,7 @@ describe("exact/SVM scheme compliance", () => {
         payloadFor(transaction),
         requirements({ extra: { feePayer: strangerSigner.address } }),
       );
-      assert.equal(result.invalidReason, "fee_payer_not_managed_by_facilitator");
+      assert.equal(result.invalidReason, REASON.feePayerNotManaged);
     });
 
     test("rejects requirements with no fee payer at all", async () => {
@@ -249,7 +283,7 @@ describe("exact/SVM scheme compliance", () => {
         payloadFor(await buildTransaction()),
         requirements({ extra: {} }),
       );
-      assert.equal(result.invalidReason, "invalid_exact_svm_payload_missing_fee_payer");
+      assert.equal(result.invalidReason, REASON.missingFeePayer);
     });
   });
 
@@ -259,7 +293,7 @@ describe("exact/SVM scheme compliance", () => {
       const result = await verify(payloadFor(transaction), requirements());
       assert.equal(
         result.invalidReason,
-        "invalid_exact_svm_payload_transaction_instructions_length",
+        REASON.instructionsLength,
       );
     });
 
@@ -280,7 +314,7 @@ describe("exact/SVM scheme compliance", () => {
         ],
       });
       const result = await verify(payloadFor(transaction), requirements());
-      assert.equal(result.invalidReason, "transaction_simulation_failed");
+      assert.equal(result.invalidReason, REASON.simulationFailed);
     });
 
     test("rejects more instructions than the layout allows", async () => {
@@ -298,7 +332,7 @@ describe("exact/SVM scheme compliance", () => {
       const result = await verify(payloadFor(transaction), requirements());
       assert.equal(
         result.invalidReason,
-        "invalid_exact_svm_payload_transaction_instructions_length",
+        REASON.instructionsLength,
       );
     });
 
@@ -309,7 +343,7 @@ describe("exact/SVM scheme compliance", () => {
       const result = await verify(payloadFor(transaction), requirements());
       assert.equal(
         result.invalidReason,
-        "invalid_exact_svm_payload_no_transfer_instruction",
+        REASON.noTransferInstruction,
       );
     });
   });
@@ -320,7 +354,7 @@ describe("exact/SVM scheme compliance", () => {
         instructions: [...computeBudget(), transferTo({ mint: OTHER_MINT })],
       });
       const result = await verify(payloadFor(transaction), requirements());
-      assert.equal(result.invalidReason, "invalid_exact_svm_payload_mint_mismatch");
+      assert.equal(result.invalidReason, REASON.mintMismatch);
     });
 
     test("rejects a destination that is not the payee's token account", async () => {
@@ -333,7 +367,7 @@ describe("exact/SVM scheme compliance", () => {
         instructions: [...computeBudget(), transferTo({ destination: strangerAta })],
       });
       const result = await verify(payloadFor(transaction), requirements());
-      assert.equal(result.invalidReason, "invalid_exact_svm_payload_recipient_mismatch");
+      assert.equal(result.invalidReason, REASON.recipientMismatch);
     });
 
     test("rejects paying less than the amount required", async () => {
@@ -341,7 +375,7 @@ describe("exact/SVM scheme compliance", () => {
         instructions: [...computeBudget(), transferTo({ amount: AMOUNT - 1n })],
       });
       const result = await verify(payloadFor(transaction), requirements());
-      assert.equal(result.invalidReason, "invalid_exact_svm_payload_amount_mismatch");
+      assert.equal(result.invalidReason, REASON.amountMismatch);
     });
 
     test("rejects paying more than the amount required", async () => {
@@ -352,7 +386,7 @@ describe("exact/SVM scheme compliance", () => {
         instructions: [...computeBudget(), transferTo({ amount: AMOUNT + 1n })],
       });
       const result = await verify(payloadFor(transaction), requirements());
-      assert.equal(result.invalidReason, "invalid_exact_svm_payload_amount_mismatch");
+      assert.equal(result.invalidReason, REASON.amountMismatch);
     });
 
     test("rejects a payload for a different network", async () => {
@@ -360,7 +394,7 @@ describe("exact/SVM scheme compliance", () => {
         payloadFor(await buildTransaction(), { network: OTHER_NETWORK }),
         requirements(),
       );
-      assert.equal(result.invalidReason, "network_mismatch");
+      assert.equal(result.invalidReason, REASON.networkMismatch);
     });
 
     test("rejects a scheme other than exact", async () => {
@@ -368,7 +402,7 @@ describe("exact/SVM scheme compliance", () => {
         payloadFor(await buildTransaction(), { scheme: "upto" }),
         requirements(),
       );
-      assert.equal(result.invalidReason, "unsupported_scheme");
+      assert.equal(result.invalidReason, REASON.unsupportedScheme);
     });
   });
 
@@ -381,7 +415,7 @@ describe("exact/SVM scheme compliance", () => {
         payloadFor(transaction),
         requirements({ extra: { feePayer: feePayerSigner.address, memo: "invoice-42" } }),
       );
-      assert.equal(result.invalidReason, "transaction_simulation_failed");
+      assert.equal(result.invalidReason, REASON.simulationFailed);
     });
 
     test("rejects a memo whose contents were tampered with", async () => {
@@ -392,7 +426,7 @@ describe("exact/SVM scheme compliance", () => {
         payloadFor(transaction),
         requirements({ extra: { feePayer: feePayerSigner.address, memo: "invoice-42" } }),
       );
-      assert.equal(result.invalidReason, "invalid_exact_svm_payload_memo_mismatch");
+      assert.equal(result.invalidReason, REASON.memoMismatch);
     });
 
     test("rejects a missing memo when the seller required one", async () => {
@@ -400,7 +434,7 @@ describe("exact/SVM scheme compliance", () => {
         payloadFor(await buildTransaction()),
         requirements({ extra: { feePayer: feePayerSigner.address, memo: "invoice-42" } }),
       );
-      assert.equal(result.invalidReason, "invalid_exact_svm_payload_memo_count");
+      assert.equal(result.invalidReason, REASON.memoCount);
     });
   });
 
@@ -408,7 +442,7 @@ describe("exact/SVM scheme compliance", () => {
     const result = await verify(payloadFor("bm90LWEtdHJhbnNhY3Rpb24="), requirements());
     assert.equal(
       result.invalidReason,
-      "invalid_exact_svm_payload_transaction_could_not_be_decoded",
+      REASON.undecodableTransaction,
     );
   });
 });
