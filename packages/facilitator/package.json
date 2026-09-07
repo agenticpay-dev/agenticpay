@@ -44,7 +44,7 @@
     "@x402/extensions": "^2.24.0",
     "@x402/svm": "^2.24.0",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.6.1",
+    "express-rate-limit": "^8.7.0",
     "posthog-node": "^5.51.4"
   },
   "devDependencies": {
