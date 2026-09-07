@@ -55,6 +55,6 @@
     "@x402/svm": "^2.25.0"
   },
   "devDependencies": {
-    "@types/node": "^26.4.0"
+    "@types/node": "^26.4.1"
   }
 }
