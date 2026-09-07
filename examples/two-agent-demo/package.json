@@ -13,9 +13,9 @@
     "@agenticpay/sdk": "workspace:*",
     "@anthropic-ai/sdk": "^0.122.0",
     "@solana/kit": "^7.1.1",
-    "@x402/core": "^2.24.0",
-    "@x402/fetch": "^2.24.0",
-    "@x402/svm": "^2.24.0"
+    "@x402/core": "^2.25.0",
+    "@x402/fetch": "^2.25.0",
+    "@x402/svm": "^2.25.0"
   },
   "devDependencies": {
     "@types/node": "^26.4.0"

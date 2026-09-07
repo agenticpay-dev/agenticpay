@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
-    "@x402/core": "^2.24.0",
-    "@x402/express": "^2.24.0",
-    "@x402/svm": "^2.24.0",
+    "@x402/core": "^2.25.0",
+    "@x402/express": "^2.25.0",
+    "@x402/svm": "^2.25.0",
     "express": "^5.2.1"
   },
   "devDependencies": {

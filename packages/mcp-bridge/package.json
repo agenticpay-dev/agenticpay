@@ -49,9 +49,9 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@solana/kit": "^7.1.1",
-    "@x402/core": "^2.24.0",
-    "@x402/fetch": "^2.24.0",
-    "@x402/svm": "^2.24.0",
+    "@x402/core": "^2.25.0",
+    "@x402/fetch": "^2.25.0",
+    "@x402/svm": "^2.25.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
