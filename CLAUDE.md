@@ -24,3 +24,12 @@ znaku, a `/verify` zwraca je klientowi. Bump `@x402/svm` potrafi je przemianowa�
 (2.24.0 dodał prefiks `invalid_exact_svm_`), więc bump i poprawka testów muszą
 wejść jednym commitem. Sprawdź: `src/exact/facilitator/errors.ts` w paczce.
 (2026-09-02)
+
+## Alert Dependabota potrafi nie mieć PR-a
+
+Przebieg bezpieczeństwa, który ma otworzyć poprawkę, potrafi się wywrócić i nie
+zostawia po sobie śladu ani w liście PR-ów, ani w widoku alertów. Między 08.09 a
+13.09.2026 wywróciły się cztery takie przebiegi (`hono`, `@ai-sdk/provider-utils`)
+i alerty zostały bez poprawki. Sprawdź:
+`gh run list --limit 25 --json conclusion,displayTitle --jq '.[]|select(.conclusion=="failure")'`.
+(2026-09-13)
