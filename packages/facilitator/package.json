@@ -38,8 +38,8 @@
   },
   "dependencies": {
     "@agenticpay/sdk": "workspace:*",
-    "@solana/kit": "^8.0.0",
-    "@solana/web3.js": "^1.95.4",
+    "@solana/kit": "^8.3.0",
+    "@solana/web3.js": "^1.99.0",
     "@x402/core": "^2.25.0",
     "@x402/extensions": "^2.25.0",
     "@x402/svm": "^2.25.0",
