@@ -53,7 +53,7 @@ importers:
         version: link:../../packages/sdk
       '@anthropic-ai/sdk':
         specifier: ^0.123.0
-        version: 0.123.0(zod@4.4.3)
+        version: 0.123.0(zod@4.6.2)
       '@solana/kit':
         specifier: ^8.0.0
         version: 8.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@7.0.2)(utf-8-validate@6.0.6)
@@ -181,7 +181,7 @@ importers:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
-        version: 1.30.0(@cfworker/json-schema@4.1.1)(zod@4.4.3)
+        version: 1.30.0(@cfworker/json-schema@4.1.1)(zod@4.6.2)
       '@solana/kit':
         specifier: ^8.0.0
         version: 8.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@7.0.2)(utf-8-validate@6.0.6)
@@ -195,8 +195,8 @@ importers:
         specifier: ^2.25.0
         version: 2.25.0(@solana/kit@8.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@7.0.2)(utf-8-validate@6.0.6))(@solana/sysvars@8.0.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@7.0.2))
       zod:
-        specifier: ^4.4.3
-        version: 4.4.3
+        specifier: ^4.6.2
+        version: 4.6.2
     devDependencies:
       '@types/node':
         specifier: ^26.5.1
@@ -2280,8 +2280,8 @@ packages:
   zod@4.4.1:
     resolution: {integrity: sha512-a6ENMBBGZBsnlSebQ/eKCguSBeGKSf4O7BPnqVPmYGtpBYI7VSqoVqw+QcB7kPRjbqPwhYTpFbVj/RqNz/CT0Q==}
 
-  zod@4.4.3:
-    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+  zod@4.6.2:
+    resolution: {integrity: sha512-lh5RCAGFa1Cm2hjtNwLQhSs/AsqdWnTQaBER9fEwN/88pSh7KOtJavtBx/0VlkN/uFd61SwYmljLMDAsHlvzBQ==}
 
 snapshots:
 
@@ -2312,12 +2312,12 @@ snapshots:
     optionalDependencies:
       zod: 3.25.76
 
-  '@anthropic-ai/sdk@0.123.0(zod@4.4.3)':
+  '@anthropic-ai/sdk@0.123.0(zod@4.6.2)':
     dependencies:
       json-schema-to-ts: 3.1.1
       standardwebhooks: 1.1.1
     optionalDependencies:
-      zod: 4.4.3
+      zod: 4.6.2
 
   '@babel/runtime@7.29.7': {}
 
@@ -2437,7 +2437,7 @@ snapshots:
       langsmith: 0.6.0(@opentelemetry/api@1.9.0)(ws@8.21.3(bufferutil@4.1.0)(utf-8-validate@6.0.6))
       mustache: 4.2.0
       p-queue: 6.6.2
-      zod: 4.4.3
+      zod: 4.6.2
     transitivePeerDependencies:
       - '@opentelemetry/api'
       - '@opentelemetry/exporter-trace-otlp-proto'
@@ -2450,7 +2450,7 @@ snapshots:
       '@langchain/core': 1.1.42(@opentelemetry/api@1.9.0)(ws@8.21.3(bufferutil@4.1.0)(utf-8-validate@6.0.6))
       js-tiktoken: 1.0.21
 
-  '@modelcontextprotocol/sdk@1.30.0(@cfworker/json-schema@4.1.1)(zod@4.4.3)':
+  '@modelcontextprotocol/sdk@1.30.0(@cfworker/json-schema@4.1.1)(zod@4.6.2)':
     dependencies:
       '@hono/node-server': 2.0.11(hono@4.13.0)
       ajv: 8.20.0
@@ -2467,8 +2467,8 @@ snapshots:
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 4.4.3
-      zod-to-json-schema: 3.25.2(zod@4.4.3)
+      zod: 4.6.2
+      zod-to-json-schema: 3.25.2(zod@4.6.2)
     optionalDependencies:
       '@cfworker/json-schema': 4.1.1
     transitivePeerDependencies:
@@ -4485,12 +4485,12 @@ snapshots:
       bufferutil: 4.1.0
       utf-8-validate: 6.0.6
 
-  zod-to-json-schema@3.25.2(zod@4.4.3):
+  zod-to-json-schema@3.25.2(zod@4.6.2):
     dependencies:
-      zod: 4.4.3
+      zod: 4.6.2
 
   zod@3.25.76: {}
 
   zod@4.4.1: {}
 
-  zod@4.4.3: {}
+  zod@4.6.2: {}
