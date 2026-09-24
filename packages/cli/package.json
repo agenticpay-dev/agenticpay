@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@agenticpay/sdk": "workspace:*",
-    "@solana/web3.js": "^1.95.4",
+    "@solana/web3.js": "^1.99.0",
     "commander": "^15.0.0"
   },
   "devDependencies": {
