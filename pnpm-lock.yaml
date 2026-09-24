@@ -161,8 +161,8 @@ importers:
         specifier: ^8.7.0
         version: 8.7.0(express@5.2.1)
       posthog-node:
-        specifier: ^5.51.4
-        version: 5.51.4
+        specifier: ^5.52.4
+        version: 5.52.4
     devDependencies:
       '@solana-program/compute-budget':
         specifier: ^0.18.1
@@ -555,11 +555,11 @@ packages:
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
     engines: {node: '>=8.0.0'}
 
-  '@posthog/core@1.49.2':
-    resolution: {integrity: sha512-AXHDo/4nisUg7OPG1TQNgREK7n+chBQXLQyttp7bDTDsDg2k9lV06TmnpvuNbwJs53q9mP9hjezKEZu4fYadfg==}
+  '@posthog/core@1.55.0':
+    resolution: {integrity: sha512-x+0FR+uHsK3uJeofd5X4S2YS7hjaWkzkPN0X1GROHm9SvKw2RJ91kfQ7gT1bPtFwZSHNiRtteB7fX/xEMRN0IQ==}
 
-  '@posthog/types@1.407.1':
-    resolution: {integrity: sha512-WhbkXPC2rgylXqmxHqv70ffI3k+KxyR6s7DBIfr5NvIqHkxp6v0pk31D/jbz0DNVbzwkLjyll2pxr4FNbJiYzg==}
+  '@posthog/types@1.412.2':
+    resolution: {integrity: sha512-taxTh8o6n7ZVlC8qBypZvF+6w7/18yNkS9XDiGCbutGTKqIljfzYi/7pumgwN3mcnl/n0e9A+JhF05+nLd4Xaw==}
 
   '@scure/base@1.2.6':
     resolution: {integrity: sha512-g/nm5FgUa//MCj1gV09zTJTaM6KBAHqLN907YVQqf7zC49+DcO4B1so4ZX07Ef10Twr6nuqYEH9GEggFXA4Fmg==}
@@ -1993,8 +1993,8 @@ packages:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
     engines: {node: '>= 0.4'}
 
-  posthog-node@5.51.4:
-    resolution: {integrity: sha512-gI6JMBnU3vjDNclUBWonw3y7k8Y0UPIAVO4AQ2zu9eyW+7sY8UQRofx4JIA7IGYLMEbs4gykfogOmXp16+oUdg==}
+  posthog-node@5.52.4:
+    resolution: {integrity: sha512-P3p4OouGQfw/ouv+Px4gcVWLNwYsFB4JPyksYmxv7QRX4niwp1/C9XjQSUyl0nt+KoQnK14zFDfONHWVthwKDA==}
     engines: {node: ^20.20.0 || >=22.22.0}
     peerDependencies:
       rxjs: ^7.0.0
@@ -2545,11 +2545,11 @@ snapshots:
 
   '@opentelemetry/api@1.9.0': {}
 
-  '@posthog/core@1.49.2':
+  '@posthog/core@1.55.0':
     dependencies:
-      '@posthog/types': 1.407.1
+      '@posthog/types': 1.412.2
 
-  '@posthog/types@1.407.1': {}
+  '@posthog/types@1.412.2': {}
 
   '@scure/base@1.2.6': {}
 
@@ -4163,9 +4163,9 @@ snapshots:
 
   possible-typed-array-names@1.1.0: {}
 
-  posthog-node@5.51.4:
+  posthog-node@5.52.4:
     dependencies:
-      '@posthog/core': 1.49.2
+      '@posthog/core': 1.55.0
 
   process-nextick-args@2.0.1: {}
 
